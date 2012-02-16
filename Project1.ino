@@ -16,6 +16,17 @@ const int col[8] = { 10, 11, 12 , A3, A5, A4, A1, A2 };
 
 const int row[8] = {  2, 7,  4 , 3, 5 , 6, 8, 9 };
 
+int pixels[8][8] = {
+  { 0,0,0,0,0,0,0,0 },
+  { 0,1,1,0,0,1,1,0 },
+  { 0,1,1,0,0,1,1,0 },
+  { 0,0,0,0,0,0,0,0 },
+  { 0,1,1,0,0,1,1,0 },
+  { 0,1,1,1,1,1,1,0 },
+  { 0,0,1,1,1,1,0,0 },
+  { 0,0,0,0,0,0,0,0 } 
+};
+
 /*-------------------------------------------*/
 /* Initializization code (run once via call from Arduino framework) */
 void setup() {
@@ -33,9 +44,11 @@ void loop() {
   for(int r=0;r<8;r++){
     digitalWrite( row[r], LOW);
     for(int c=0;c<8;c++){
-      digitalWrite(col[c], HIGH);
-      delayMicroseconds(150);
-      digitalWrite(col[c], LOW);
+      digitalWrite(col[c], pixels[r][c] ? HIGH : LOW );
+    }
+    delayMicroseconds(250);
+    for(int c=0;c<8;c++){
+      digitalWrite(col[c], LOW );
     }
     digitalWrite( row[r], HIGH);
   }
