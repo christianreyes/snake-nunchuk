@@ -10,7 +10,7 @@
 
 //                   1   2   3   4   5     6   7   8
 
-const int col[8] = { 10, 11, 12 , A3, A5, A4, A1, A2 };
+const int col[8] = { 10, 11, 12 , A3, 13, 0, A1, A2 };
 
 //                   1   2   3   4   5   6   7   8
 
@@ -33,13 +33,28 @@ int pixels[8][8] = {
 /*-------------------------------------------*/
 /* Initializization code (run once via call from Arduino framework) */
 void setup() {
+  Serial.begin(19200);
+  
   // establish direction of pins we are using to drive LEDs 
   for(int i=0; i< 8 ; i++){
     pinMode( col[i], OUTPUT);
     pinMode( row[i], OUTPUT);
     
     digitalWrite( row[i], HIGH );
+    digitalWrite( col[i], LOW );
   }
+  
+  // display a test pattern to check if LEDs are connected properly
+   for(int r=0;r<8;r++){
+    digitalWrite( row[r], LOW);
+    for(int c=0;c<8;c++){
+      digitalWrite(col[c], HIGH );
+      delay(20);
+      digitalWrite(col[c], LOW );
+    }
+    digitalWrite( row[r], HIGH);
+  }
+  
 }
 
 /* Main routine (called repeated by from the Arduino framework) */
@@ -57,9 +72,7 @@ void loop() {
     digitalWrite( row[r], HIGH);
   }
   
-  if( digitalRead(upSwitch) == HIGH){
-    flashAll();
-  }
+  analogWrite(A5, 255);
 }  // end loop()
 
 void flashAll(){
