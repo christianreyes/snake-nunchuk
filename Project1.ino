@@ -17,6 +17,8 @@ const int row[8] = {  2,  7,  4 ,  3,  5, 6,  8,  9 };
 int timex = 0;
 int timey = 0;
 
+int timemove = 0;
+
 enemy enemies[5];
 
 /*-------------------------------------------*/
@@ -32,11 +34,7 @@ void setup() {
   // smilie test pattern
   smilieTest();
 
-<<<<<<< Updated upstream
-  // Serial.begin(19200);
-=======
   //Serial.begin(19200);
->>>>>>> Stashed changes
   randomSeed(analogRead(A7));
   nunchuck_init(); // send the initilization handshake
   
@@ -50,33 +48,31 @@ void setup() {
 
 enemy generateEnemy(){
     enemy e;
-<<<<<<< Updated upstream
-    e.x = random(1,9);
-    e.y = random(1,9);
-    e.magnitude = random(1,3);
-=======
    
     if( random(2) == 0){
-      e.x = random(0,9);
-      e.y = 0;
+      e.x = random(1,9);
+      e.y = 1;
     } else {
-      e.x = 0;
-      e.y = random(0,9);
+      e.x = 1;
+      e.y = random(1,9);
     }
     
     e.magnitude = (float)random(1,4);
->>>>>>> Stashed changes
+
+    int tx = random(4,6);
+    int ty = random(4,6);
     
-    int tx = random(3,7);
-    int ty = random(3,7);
-    
-    e.angle = atan2(e.x, e.y);
+    e.angle = atan2((float)tx - e.x, (float)ty - e.y);
     
     return e;
 }
 
 boolean inThisRow(int r, enemy e){
-  return e.y == (r+1);
+  return (int)e.y == (r+1);
+}
+
+boolean inBounds(enemy e){
+  return ((int)e.y >= 1 && (int)e.y <= 8) && ((int)e.x >= 1 && (int)e.x <= 8);
 }
 
 /* Main routine (called repeated by from the Arduino framework) */
@@ -101,9 +97,6 @@ void loop() {
     digitalWrite( row[r], HIGH);
   }
   
-<<<<<<< Updated upstream
-  
-=======
   timemove++;
   if(timemove > 20){
     for(int i=0; i< 5; i++){
@@ -123,7 +116,6 @@ void loop() {
     timemove = 0;
   }
  
->>>>>>> Stashed changes
 }  // end loop()
 
 

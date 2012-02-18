@@ -2,5 +2,5 @@ typedef struct {
   float x;
   float y;
   float angle; // in degrees
-  int magnitude;
+  float magnitude;
 } enemy;
