@@ -8,6 +8,7 @@
 
 #include <Wire.h>
 #include "nunchuck_funcs.h"
+#include "enemy.h"
 
 //                    1   2   3    4   5  6   7   8
 const int col[8] = { 10, 11, 12 , A3, 13, 0, A1, A2 };
@@ -15,13 +16,6 @@ const int row[8] = {  2,  7,  4 ,  3,  5, 6,  8,  9 };
 
 int timex = 0;
 int timey = 0;
-
-typedef struct {
-  float x;
-  float y;
-  int angle; // in degrees
-  int magnitude;
-} enemy;
 
 enemy enemies[5];
 
@@ -42,72 +36,53 @@ void setup() {
   randomSeed(analogRead(A7));
   nunchuck_init(); // send the initilization handshake
   
+  for(int i=0;i<5;i++){
+    enemy e;
+    e.x = random(1,9);
+    e.y = random(1,9);
+    e.magnitude = random(1,3);
+    
+    int tx = random(3,7);
+    int ty = random(3,7);
+    
+    e.angle = atan2(e.x, e.y);
+    
+    enemies[i] = e;
+  }
+  
   //x = random(1,9);
   //y = random(1,9);
 }
 
+boolean inThisRow(int r, enemy e){
+  return e.y == (r+1);
+}
+
 /* Main routine (called repeated by from the Arduino framework) */
 void loop() {
-  /*
   for(int r=0; r<8; r++){
     digitalWrite( row[r], LOW);
-    for(int c=0; c<8; c++){
-      if(c==(x-1) && r==(y-1)){
-        digitalWrite( col[x-1], HIGH);
-        //delayMicroseconds(500);
-        delay(1);
-        digitalWrite( col[x-1], LOW);
-        
-        //Serial.print("x: "); Serial.print(x); Serial.print(" y: "); Serial.println(y);
+    
+    for(int i=0; i<5; i++){
+      enemy e = enemies[i];
+      
+      if(inThisRow(r, e)){
+        digitalWrite( col[(int)e.x - 1], HIGH);
       }
-      */
-      /*
-      if (c==(oppx-1) && r==(oppy-1)){
-        digitalWrite( col[oppx-1], HIGH);
-        //delayMicroseconds(500);
-        delay(1);
-        digitalWrite( col[oppx-1], LOW);
-        
-        //Serial.print("x: "); Serial.print(x); Serial.print(" y: "); Serial.println(y);
-      }
-      */
-      /*
     }
+    
+    delay(1);
+    
+    for(int c=0; c<8; c++){
+      digitalWrite( col[c], LOW);
+    }
+    
     digitalWrite( row[r], HIGH);
   }
   
-  nunchuck_get_data();
   
-  timex++;
-  if(timex > 10){
-    if(x < 8 && nunchuck_joyx() > 180){
-      timex = 0;
-      x+= 1;
-    } else if(x > 1 && nunchuck_joyx() < 80){
-      timex = 0;
-      x= x-1;
-    } 
-  } else if(timex > 30000){
-    timex = 0;
-  }
-  
-  
-  timey++;
-  if(timey > 10){
-    if(y > 1 && nunchuck_joyy() > 180){
-      timey = 0;
-      y= y-1;
-    } else if( y < 8 && nunchuck_joyy() < 80){
-      timey = 0;
-      y+= 1;
-    } 
-  } else if(timey > 30000){
-    timey = 0;
-  }
-  
-  */
-  // nunchuck_print_data();
 }  // end loop()
+
 
 void pinSetup(){
   for(int i=0; i< 8 ; i++){
@@ -158,3 +133,53 @@ void smilieTest(){
     }
   }
 }
+
+
+    
+    /*
+    for(int c=0; c<8; c++){
+      
+      if(c==(x-1) && r==(y-1)){
+        digitalWrite( col[x-1], HIGH);
+        //delayMicroseconds(500);
+        delay(1);
+        digitalWrite( col[x-1], LOW);
+        
+        //Serial.print("x: "); Serial.print(x); Serial.print(" y: "); Serial.println(y);
+      }
+    }
+    digitalWrite( row[r], HIGH);
+    */
+    
+    
+    //nunchuck_get_data();
+  /*
+  timex++;
+  if(timex > 10){
+    if(x < 8 && nunchuck_joyx() > 180){
+      timex = 0;
+      x+= 1;
+    } else if(x > 1 && nunchuck_joyx() < 80){
+      timex = 0;
+      x= x-1;
+    } 
+  } else if(timex > 30000){
+    timex = 0;
+  }
+  
+  
+  timey++;
+  if(timey > 10){
+    if(y > 1 && nunchuck_joyy() > 180){
+      timey = 0;
+      y= y-1;
+    } else if( y < 8 && nunchuck_joyy() < 80){
+      timey = 0;
+      y+= 1;
+    } 
+  } else if(timey > 30000){
+    timey = 0;
+  }
+  
+  */
+  // nunchuck_print_data();
