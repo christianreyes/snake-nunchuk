@@ -14,12 +14,16 @@
 const int col[8] = { 10, 11, 12 , A3, 13, 0, A1, A2 };
 const int row[8] = {  2,  7,  4 ,  3,  5, 6,  8,  9 };
 
+int x;
+int y;
+
 int timex = 0;
 int timey = 0;
 
 int timemove = 0;
 
-enemy enemies[5];
+const int numEnemies = 3;
+enemy enemies[numEnemies];
 
 /*-------------------------------------------*/
 /* Initializization code (run once via call from Arduino framework) */
@@ -38,12 +42,12 @@ void setup() {
   randomSeed(analogRead(A7));
   nunchuck_init(); // send the initilization handshake
   
-  for(int i=0;i<5;i++){
+  for(int i=0;i<numEnemies;i++){
     enemies[i] = generateEnemy();
   }
   
-  //x = random(1,9);
-  //y = random(1,9);
+  x = random(1,9);
+  y = random(1,9);
 }
 
 enemy generateEnemy(){
@@ -51,18 +55,42 @@ enemy generateEnemy(){
    
     if( random(2) == 0){
       e.x = random(1,9);
-      e.y = 1;
+      (random(2) == 0)? e.y = 1 : e.y = 8;
     } else {
-      e.x = 1;
+      (random(2) == 0)? e.x = 1 : e.x = 8;
       e.y = random(1,9);
     }
     
-    e.magnitude = (float)random(1,4);
+    e.magnitude = (float)random(1,10) / 7;
 
-    int tx = random(4,6);
-    int ty = random(4,6);
+    int tx; 
+    int ty;
     
-    e.angle = atan2((float)tx - e.x, (float)ty - e.y);
+    if(random(0,2) == 0){
+      tx = random(4,6);
+      ty = random(4,6);
+    } else {
+      tx = x;
+      tx = y;
+    }
+    
+    e.angle = atan2((float)-(ty - e.y), (float)tx - e.x );
+    
+    //e.bright = (float) random(60,80) / 100.0;
+    /*
+      Serial.print("Enemy x: ");
+      Serial.print(e.x);
+      Serial.print("\ty: ");
+      Serial.print(e.y);
+      Serial.print("\ttx: ");
+      Serial.print(tx);
+      Serial.print("\tty: ");
+      Serial.print(ty);
+      Serial.print("\tmag: ");
+      Serial.print(e.magnitude);
+      Serial.print("\tangle: ");
+      Serial.println(e.angle);
+    */
     
     return e;
 }
@@ -80,7 +108,11 @@ void loop() {
   for(int r=0; r<8; r++){
     digitalWrite( row[r], LOW);
     
-    for(int i=0; i<5; i++){
+    if( y == (r+1) ){
+      digitalWrite( col[x-1], HIGH);
+    }
+    
+    for(int i=0; i<numEnemies; i++){
       enemy e = enemies[i];
       
       if(inThisRow(r, e)){
@@ -98,22 +130,52 @@ void loop() {
   }
   
   timemove++;
-  if(timemove > 20){
-    for(int i=0; i< 5; i++){
+  if(timemove > 10){
+    for(int i=0; i< numEnemies; i++){
       enemy e = enemies[i];
       
-      e.x = e.x + e.magnitude * cos(e.angle);
-      e.y = e.y + e.magnitude * sin(e.angle);
+      if(inBounds(e)){
+        e.x = e.x + e.magnitude * cos(e.angle);
+        e.y = e.y - e.magnitude * sin(e.angle);
+      } else {
+        e = generateEnemy();
+      }
       
       enemies[i] = e;
-      
-      //Serial.print("cos: "); Serial.println( e.x + e.magnitude * cos(e.angle) );
-      //Serial.print("sin: "); Serial.println( e.x + e.magnitude * cos(e.angle) );
-      //Serial.println("");
-      
+
+
     }
     
     timemove = 0;
+  }
+  
+  nunchuck_get_data();
+
+  timex++;
+  if(timex > 10){
+    if(x < 8 && nunchuck_joyx() > 180){
+      timex = 0;
+      x+= 1;
+    } else if(x > 1 && nunchuck_joyx() < 80){
+      timex = 0;
+      x= x-1;
+    } 
+  } else if(timex > 30000){
+    timex = 0;
+  }
+  
+  
+  timey++;
+  if(timey > 10){
+    if(y > 1 && nunchuck_joyy() > 180){
+      timey = 0;
+      y= y-1;
+    } else if( y < 8 && nunchuck_joyy() < 80){
+      timey = 0;
+      y+= 1;
+    } 
+  } else if(timey > 30000){
+    timey = 0;
   }
  
 }  // end loop()
@@ -187,34 +249,7 @@ void smilieTest(){
     */
     
     
-    //nunchuck_get_data();
-  /*
-  timex++;
-  if(timex > 10){
-    if(x < 8 && nunchuck_joyx() > 180){
-      timex = 0;
-      x+= 1;
-    } else if(x > 1 && nunchuck_joyx() < 80){
-      timex = 0;
-      x= x-1;
-    } 
-  } else if(timex > 30000){
-    timex = 0;
-  }
+
   
-  
-  timey++;
-  if(timey > 10){
-    if(y > 1 && nunchuck_joyy() > 180){
-      timey = 0;
-      y= y-1;
-    } else if( y < 8 && nunchuck_joyy() < 80){
-      timey = 0;
-      y+= 1;
-    } 
-  } else if(timey > 30000){
-    timey = 0;
-  }
-  
-  */
+ 
   // nunchuck_print_data();
