@@ -11,8 +11,8 @@
 #include "enemy.h"
 
 //                    1   2   3    4   5  6   7   8
-const int col[8] = { 10, 11, 12 , A3, 13, 0, A1, A2 };
-const int row[8] = {  2,  7,  4 ,  3,  5, 6,  8,  9 };
+const int col[8] = { 13,  1, 11 ,  7,  0, A0, 4, A3 };
+const int row[8] = {  6,  2,  8 ,  5, A1,  9, A2,  10 };
 
 int x;
 int y;
@@ -135,8 +135,8 @@ void loop() {
       enemy e = enemies[i];
       
       if(inBounds(e)){
-        e.x = e.x + e.magnitude * cos(e.angle);
-        e.y = e.y - e.magnitude * sin(e.angle);
+        e.x += e.magnitude * cos(e.angle);
+        e.y -= e.magnitude * sin(e.angle);
       } else {
         e = generateEnemy();
       }
@@ -230,26 +230,3 @@ void smilieTest(){
     }
   }
 }
-
-
-    
-    /*
-    for(int c=0; c<8; c++){
-      
-      if(c==(x-1) && r==(y-1)){
-        digitalWrite( col[x-1], HIGH);
-        //delayMicroseconds(500);
-        delay(1);
-        digitalWrite( col[x-1], LOW);
-        
-        //Serial.print("x: "); Serial.print(x); Serial.print(" y: "); Serial.println(y);
-      }
-    }
-    digitalWrite( row[r], HIGH);
-    */
-    
-    
-
-  
- 
-  // nunchuck_print_data();
