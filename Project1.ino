@@ -16,19 +16,23 @@
 const int col[8] = { 13,  1, 11 ,  7,  0, A0, 4, A3 };
 const int row[8] = {  6,  2,  8 ,  5, A1,  9, A2, 10 };
 
-const int MAXLENGTH = 10;
+const int MAXLENGTH = 15;
 
 int length = 1;
 body snake[MAXLENGTH];
 body *head = &snake[0];
 
+/*
 int movesrecorded = 0;
 history moves[MAXLENGTH-1];
+*/
 
-int timex = 0;
-int timey = 0;
+unsigned long timex = 0;
+unsigned long timey = 0;
 
 int timemove = 0;
+
+boolean dead = false;
 
 int dim = 0;
 
@@ -47,7 +51,7 @@ void setup() {
   randomSeed(analogRead(A7));
   nunchuck_init(); // send the initilization handshake
   
-  Serial.begin(9600);
+  //Serial.begin(9600);
   
   for(int i=0;i<NUMENEMIES;i++){ enemies[i] = generateEnemy(); }
   
@@ -58,16 +62,17 @@ void setup() {
 
 /* Main routine (called repeated by from the Arduino framework) */
 void loop() {
-  updateDisplay();
-  //moveEnemies();
-  processUserInput();
-  processEating();
   
+  updateDisplay();
+  moveEnemies();
+
+  /*
   Serial.println("current snake");
   for(int i=0;i<length;i++){
     Serial.print(String(snake[i].x) + "," + String(snake[i].y) + " ");  
   }
   Serial.println("");
+  */
 }  // end loop()
 
 void updateDisplay(){
@@ -93,6 +98,7 @@ void updateDisplay(){
     
     //delay(1);
     delayMicroseconds(500);
+    //delay(100);
     
     for(int c=0; c<8; c++){
       digitalWrite( col[c], LOW);
@@ -102,7 +108,7 @@ void updateDisplay(){
    
   }
   
-  if(dim == 4){
+  if(dim == 2){
     dim = 0;
   } else {
     dim++;
@@ -127,6 +133,20 @@ void processEating(){
       }
     } 
   }
+}
+
+boolean checkEatingSelf(){
+  for(int i=0;i<NUMENEMIES;i++){
+    enemy e = enemies[i];
+    
+    for(int b=1;b<length;b++){
+      if(snake[b].x == head->x && snake[b].y == head->y){
+        return true;
+      } 
+    }
+  }
+  
+  return false;
 }
 
 void moveEnemies(){
@@ -155,63 +175,75 @@ void processUserInput(){
   boolean moved = false;
   
   timex++;
-  if(timex > 15){
-    if(head->x < 8 && nunchuck_joyx() > 180){
+  if(timex > 15UL){
+    if(head->x < 8 && nunchuck_joyx() > 190){
       timex = 0;
       head->oldx = head->x;
       head->oldy = head->y;
       head->x += 1;
       moved = true;
-    } else if(head->x > 1 && nunchuck_joyx() < 80){
+    } else if(head->x > 1 && nunchuck_joyx() < 70){
       timex = 0;
       head->oldx = head->x;
       head->oldy = head->y;
       head->x -= 1;
       moved = true;
     } 
-  } else if(timex > 30000){
+  } else if(timex > 30000UL){
     timex = 0;
   }
   
-  
-  timey++;
-  if(timey > 15){
-    if(head->y > 1 && nunchuck_joyy() > 180){
+  if(!moved){
+    timey++;
+    if(timey > 15UL){
+      if(head->y > 1 && nunchuck_joyy() > 190){
+        timey = 0;
+        head->oldx = head->x;
+        head->oldy = head->y;
+        head->y--;
+        moved = true;
+      } else if( head->y < 8 && nunchuck_joyy() < 70){
+        timey = 0;
+        head->oldx = head->x;
+        head->oldy = head->y;
+        head->y++;
+        moved = true;
+      } 
+    } else if(timey > 30000UL){
       timey = 0;
-      head->oldx = head->x;
-      head->oldy = head->y;
-      head->y--;
-      moved = true;
-    } else if( head->y < 8 && nunchuck_joyy() < 80){
-      timey = 0;
-      head->oldx = head->x;
-      head->oldy = head->y;
-      head->y++;
-      moved = true;
-    } 
-  } else if(timey > 30000){
-    timey = 0;
+    }
   }
   
   if(moved){
-    /*
+    
     for(int i=1;i<length;i++){
       snake[i].oldx = snake[i].x;
       snake[i].x = snake[i-1].oldx;
       snake[i].oldy = snake[i].y;
       snake[i].y = snake[i-1].oldy;
     }
-    */
     
-    if(movesrecorded < MAXLENGTH-1){
-      history h;
-      h.x = head->oldx;
-      h.y = head->oldy;
+    processEating();
     
-      moves[movesrecorded] = h;
-      movesrecorded++;
-    
-      //displayMoves();
+    if(checkEatingSelf()){
+      dead = true;
+      displayFlash();
+    }
+  }
+}
+
+void displayFlash(){
+  for(int r=0;r<8;r++){
+    digitalWrite(row[r], LOW);
+    for(int c=0;c<8;c++){
+      digitalWrite(col[c], HIGH);
+    }
+  }
+  delay(200);
+  for(int r=0;r<8;r++){
+    digitalWrite(row[r], HIGH);
+    for(int c=0;c<8;c++){
+      digitalWrite(col[c], LOW);
     }
   }
 }
@@ -302,7 +334,7 @@ void smilieTest(){
     }
   }
 }
-
+/*
 void displayMoves(){
   Serial.println("");
   for(int i=0;i<movesrecorded;i++){
@@ -311,3 +343,4 @@ void displayMoves(){
   } 
   Serial.println("");
 }
+*/
