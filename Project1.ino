@@ -16,13 +16,14 @@
 const int col[8] = { 13,  1, 11 ,  7,  0, A0, 4, A3 };
 const int row[8] = {  6,  2,  8 ,  5, A1,  9, A2, 10 };
 
-const int MAXLENGTH = 16;
+const int MAXLENGTH = 10;
 
 int length = 1;
 body snake[MAXLENGTH];
 body *head = &snake[0];
 
-history moves[MAXLENGTH];
+int movesrecorded = 0;
+history moves[MAXLENGTH-1];
 
 int timex = 0;
 int timey = 0;
@@ -42,22 +43,25 @@ void setup() {
   testPattern(); // display a test pattern to check if LEDs are connected properly
   smilieTest();  // smilie test pattern
 
-  //Serial.begin(19200);
+
   randomSeed(analogRead(A7));
   nunchuck_init(); // send the initilization handshake
+  
+  Serial.begin(9600);
   
   for(int i=0;i<NUMENEMIES;i++){ enemies[i] = generateEnemy(); }
   
   head->x = random(1,9);
   head->y = random(1,9);
+  
 }
 
 /* Main routine (called repeated by from the Arduino framework) */
 void loop() {
   updateDisplay();
-  moveEnemies();
+  //moveEnemies();
   processUserInput();
-  processEating();
+  //processEating();
 }  // end loop()
 
 void updateDisplay(){
@@ -89,6 +93,13 @@ void updateDisplay(){
     }
     
     digitalWrite( row[r], HIGH);
+   
+  }
+  
+  if(dim == 4){
+    dim = 0;
+  } else {
+    dim++;
   }
 }
 
@@ -98,8 +109,8 @@ void processEating(){
       enemy e = enemies[i];
       if(head->x == (int)e.x && head->y == (int)e.y){
         body last;
-        last.x = (int)e.x;
-        last.y = (int)e.y;
+        last.x = moves[length-1].x;
+        last.y = moves[length-1].y;
         
         snake[length] = last;
         length++;
@@ -129,25 +140,25 @@ void moveEnemies(){
       timemove = 0;
     }
   }
-    
-  if(dim == 4){
-    dim = 0;
-  } else {
-    dim++;
-  }
 }
 
 void processUserInput(){
   nunchuck_get_data();
+  
+  boolean moved = false;
+  int oldx = head->x;
+  int oldy = head->y;
   
   timex++;
   if(timex > 15){
     if(head->x < 8 && nunchuck_joyx() > 180){
       timex = 0;
       head->x += 1;
+      moved = true;
     } else if(head->x > 1 && nunchuck_joyx() < 80){
       timex = 0;
       head->x -= 1;
+      moved = true;
     } 
   } else if(timex > 30000){
     timex = 0;
@@ -159,14 +170,31 @@ void processUserInput(){
     if(head->y > 1 && nunchuck_joyy() > 180){
       timey = 0;
       head->y--;
+      moved = true;
     } else if( head->y < 8 && nunchuck_joyy() < 80){
       timey = 0;
       head->y++;
+      moved = true;
     } 
   } else if(timey > 30000){
     timey = 0;
   }
   
+  if(moved && movesrecorded < MAXLENGTH-1){
+    history h;
+    h.x = oldx;
+    h.y = oldy;
+    
+    //if(movesrecorded > 0){
+    //  for(int i=movesrecorded;i>0;i--){ moves[i] = moves[i-1]; }
+    //}
+    
+    moves[movesrecorded] = h;
+       
+    movesrecorded++;
+    
+    displayMoves();
+  }
 }
 
 enemy generateEnemy(){
@@ -254,4 +282,17 @@ void smilieTest(){
       digitalWrite( row[r], HIGH);
     }
   }
+}
+
+void displayMoves(){
+  Serial.println("");
+  for(int i=0;i<movesrecorded;i++){
+    history h = moves[i];
+    Serial.print(String(h.x) + "," + String(h.y) + " ");
+  } 
+  
+  /*history h = moves[0];
+  msg+= String(h.x) + ", " + String(h.y) + " ";
+  */
+  Serial.println("");
 }
