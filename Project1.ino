@@ -61,7 +61,13 @@ void loop() {
   updateDisplay();
   //moveEnemies();
   processUserInput();
-  //processEating();
+  processEating();
+  
+  Serial.println("current snake");
+  for(int i=0;i<length;i++){
+    Serial.print(String(snake[i].x) + "," + String(snake[i].y) + " ");  
+  }
+  Serial.println("");
 }  // end loop()
 
 void updateDisplay(){
@@ -109,8 +115,9 @@ void processEating(){
       enemy e = enemies[i];
       if(head->x == (int)e.x && head->y == (int)e.y){
         body last;
-        last.x = moves[length-1].x;
-        last.y = moves[length-1].y;
+        //Serial.println("old head x " + String(snake[length-1].oldx) + " old head y " + String(snake[length-1].oldy));
+        last.x = snake[length-1].oldx;
+        last.y = snake[length-1].oldy;
         
         snake[length] = last;
         length++;
@@ -146,17 +153,19 @@ void processUserInput(){
   nunchuck_get_data();
   
   boolean moved = false;
-  int oldx = head->x;
-  int oldy = head->y;
   
   timex++;
   if(timex > 15){
     if(head->x < 8 && nunchuck_joyx() > 180){
       timex = 0;
+      head->oldx = head->x;
+      head->oldy = head->y;
       head->x += 1;
       moved = true;
     } else if(head->x > 1 && nunchuck_joyx() < 80){
       timex = 0;
+      head->oldx = head->x;
+      head->oldy = head->y;
       head->x -= 1;
       moved = true;
     } 
@@ -169,10 +178,14 @@ void processUserInput(){
   if(timey > 15){
     if(head->y > 1 && nunchuck_joyy() > 180){
       timey = 0;
+      head->oldx = head->x;
+      head->oldy = head->y;
       head->y--;
       moved = true;
     } else if( head->y < 8 && nunchuck_joyy() < 80){
       timey = 0;
+      head->oldx = head->x;
+      head->oldy = head->y;
       head->y++;
       moved = true;
     } 
@@ -180,20 +193,26 @@ void processUserInput(){
     timey = 0;
   }
   
-  if(moved && movesrecorded < MAXLENGTH-1){
-    history h;
-    h.x = oldx;
-    h.y = oldy;
+  if(moved){
+    /*
+    for(int i=1;i<length;i++){
+      snake[i].oldx = snake[i].x;
+      snake[i].x = snake[i-1].oldx;
+      snake[i].oldy = snake[i].y;
+      snake[i].y = snake[i-1].oldy;
+    }
+    */
     
-    //if(movesrecorded > 0){
-    //  for(int i=movesrecorded;i>0;i--){ moves[i] = moves[i-1]; }
-    //}
+    if(movesrecorded < MAXLENGTH-1){
+      history h;
+      h.x = head->oldx;
+      h.y = head->oldy;
     
-    moves[movesrecorded] = h;
-       
-    movesrecorded++;
+      moves[movesrecorded] = h;
+      movesrecorded++;
     
-    displayMoves();
+      //displayMoves();
+    }
   }
 }
 
@@ -290,9 +309,5 @@ void displayMoves(){
     history h = moves[i];
     Serial.print(String(h.x) + "," + String(h.y) + " ");
   } 
-  
-  /*history h = moves[0];
-  msg+= String(h.x) + ", " + String(h.y) + " ";
-  */
   Serial.println("");
 }
