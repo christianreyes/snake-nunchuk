@@ -10,13 +10,19 @@
 #include "nunchuck_funcs.h"
 #include "enemy.h"
 #include "body.h"
+#include "history.h"
 
 //                    1   2   3    4   5  6   7   8
 const int col[8] = { 13,  1, 11 ,  7,  0, A0, 4, A3 };
 const int row[8] = {  6,  2,  8 ,  5, A1,  9, A2, 10 };
 
-body head;
-body mybody[8];
+const int MAXLENGTH = 16;
+
+int length = 1;
+body snake[MAXLENGTH];
+body *head = &snake[0];
+
+history moves[MAXLENGTH];
 
 int timex = 0;
 int timey = 0;
@@ -25,8 +31,8 @@ int timemove = 0;
 
 int dim = 0;
 
-const int numEnemies = 4;
-enemy enemies[numEnemies];
+const int NUMENEMIES = 4;
+enemy enemies[NUMENEMIES];
 
 /*-------------------------------------------*/
 /* Initializization code (run once via call from Arduino framework) */
@@ -40,10 +46,10 @@ void setup() {
   randomSeed(analogRead(A7));
   nunchuck_init(); // send the initilization handshake
   
-  for(int i=0;i<numEnemies;i++){ enemies[i] = generateEnemy(); }
+  for(int i=0;i<NUMENEMIES;i++){ enemies[i] = generateEnemy(); }
   
-  head.x = random(1,9);
-  head.y = random(1,9);
+  head->x = random(1,9);
+  head->y = random(1,9);
 }
 
 /* Main routine (called repeated by from the Arduino framework) */
@@ -51,19 +57,22 @@ void loop() {
   updateDisplay();
   moveEnemies();
   processUserInput();
-  calculateEating();
+  processEating();
 }  // end loop()
 
 void updateDisplay(){
   for(int r=0; r<8; r++){
     digitalWrite( row[r], LOW);
     
-    if( head.y == (r+1) ){
-      digitalWrite( col[head.x-1], HIGH);
+    for(int i=0;i<length;i++){
+      body b = snake[i];
+      if( b.y == (r+1) ){
+        digitalWrite( col[b.x - 1], HIGH);
+      }
     }
     
     if(dim == 1){
-      for(int i=0; i<numEnemies; i++){
+      for(int i=0; i<NUMENEMIES; i++){
         enemy e = enemies[i];
         
         if(inThisRow(r, e)){
@@ -83,11 +92,30 @@ void updateDisplay(){
   }
 }
 
+void processEating(){
+  if(length < MAXLENGTH){
+    for(int i=0;i<NUMENEMIES; i++){
+      enemy e = enemies[i];
+      if(head->x == (int)e.x && head->y == (int)e.y){
+        body last;
+        last.x = (int)e.x;
+        last.y = (int)e.y;
+        
+        snake[length] = last;
+        length++;
+        
+        e = generateEnemy();
+        enemies[i] = e;
+      }
+    } 
+  }
+}
+
 void moveEnemies(){
   if(dim == 1){
     timemove++;
     if(timemove > 15){
-      for(int i=0; i< numEnemies; i++){
+      for(int i=0; i< NUMENEMIES; i++){
         enemy e = enemies[i];
         
         if(inBounds(e)){
@@ -114,12 +142,12 @@ void processUserInput(){
   
   timex++;
   if(timex > 15){
-    if(head.x < 8 && nunchuck_joyx() > 180){
+    if(head->x < 8 && nunchuck_joyx() > 180){
       timex = 0;
-      head.x+= 1;
-    } else if(head.x > 1 && nunchuck_joyx() < 80){
+      head->x += 1;
+    } else if(head->x > 1 && nunchuck_joyx() < 80){
       timex = 0;
-      head.x-= 1;
+      head->x -= 1;
     } 
   } else if(timex > 30000){
     timex = 0;
@@ -128,12 +156,12 @@ void processUserInput(){
   
   timey++;
   if(timey > 15){
-    if(head.y > 1 && nunchuck_joyy() > 180){
+    if(head->y > 1 && nunchuck_joyy() > 180){
       timey = 0;
-      head.y--;
-    } else if( head.y < 8 && nunchuck_joyy() < 80){
+      head->y--;
+    } else if( head->y < 8 && nunchuck_joyy() < 80){
       timey = 0;
-      head.y++;
+      head->y++;
     } 
   } else if(timey > 30000){
     timey = 0;
@@ -161,8 +189,8 @@ enemy generateEnemy(){
       tx = random(4,6);
       ty = random(4,6);
     } else {
-      tx = head.x;
-      tx = head.y;
+      tx = head->x;
+      tx = head->y;
     }
     
     e.angle = atan2((float)-(ty - e.y), (float)tx - e.x );
