@@ -65,7 +65,19 @@ void loop() {
   
   updateDisplay();
   moveEnemies();
-  if(!dead){ processUserInput(); }
+  if(!dead){
+    processUserInput();
+  }
+  else{
+    dead = false;
+    for(int i=1;i<MAXLENGTH;i++){
+      body b;
+      snake[i] = b;
+    }
+    head->x = random(1,9);
+    head->y = random(1,9);
+    length = 1;
+  }
 
   /*
   Serial.println("current snake");
@@ -97,7 +109,9 @@ void updateDisplay(){
       }
     }
     
+    //delay(1);
     delayMicroseconds(500);
+    //delay(100);
     
     for(int c=0; c<8; c++){
       digitalWrite( col[c], LOW);
@@ -242,18 +256,21 @@ boolean hittingSecond(int dirx, int diry){
 }
 
 void displayFlash(){
-  for(int r=0;r<8;r++){
-    digitalWrite(row[r], LOW);
-    for(int c=0;c<8;c++){
-      digitalWrite(col[c], HIGH);
+  for(int i = 0;i<5;i++){
+    for(int r=0;r<8;r++){
+      digitalWrite(row[r], LOW);
+      for(int c=0;c<8;c++){
+        digitalWrite(col[c], HIGH);
+      }
     }
-  }
-  delay(200);
-  for(int r=0;r<8;r++){
-    digitalWrite(row[r], HIGH);
-    for(int c=0;c<8;c++){
-      digitalWrite(col[c], LOW);
+    delay(200);
+    for(int r=0;r<8;r++){
+      digitalWrite(row[r], HIGH);
+      for(int c=0;c<8;c++){
+        digitalWrite(col[c], LOW);
+      }
     }
+    delay(200);
   }
 }
 
@@ -343,13 +360,3 @@ void smilieTest(){
     }
   }
 }
-/*
-void displayMoves(){
-  Serial.println("");
-  for(int i=0;i<movesrecorded;i++){
-    history h = moves[i];
-    Serial.print(String(h.x) + "," + String(h.y) + " ");
-  } 
-  Serial.println("");
-}
-*/
