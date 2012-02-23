@@ -16,7 +16,7 @@
 const int col[8] = { 13,  1, 11 ,  7,  0, A0, 4, A3 };
 const int row[8] = {  6,  2,  8 ,  5, A1,  9, A2, 10 };
 
-const int MAXLENGTH = 15;
+const int MAXLENGTH = 64;
 
 int length = 1;
 body snake[MAXLENGTH];
@@ -65,6 +65,7 @@ void loop() {
   
   updateDisplay();
   moveEnemies();
+  if(!dead){ processUserInput(); }
 
   /*
   Serial.println("current snake");
@@ -96,9 +97,7 @@ void updateDisplay(){
       }
     }
     
-    //delay(1);
     delayMicroseconds(500);
-    //delay(100);
     
     for(int c=0; c<8; c++){
       digitalWrite( col[c], LOW);
@@ -175,14 +174,15 @@ void processUserInput(){
   boolean moved = false;
   
   timex++;
+  
   if(timex > 15UL){
-    if(head->x < 8 && nunchuck_joyx() > 190){
+    if(head->x < 8 && nunchuck_joyx() > 190 && !hittingSecond(1,0)){
       timex = 0;
       head->oldx = head->x;
       head->oldy = head->y;
       head->x += 1;
       moved = true;
-    } else if(head->x > 1 && nunchuck_joyx() < 70){
+    } else if(head->x > 1 && nunchuck_joyx() < 70 && !hittingSecond(-1, 0)){
       timex = 0;
       head->oldx = head->x;
       head->oldy = head->y;
@@ -196,13 +196,13 @@ void processUserInput(){
   if(!moved){
     timey++;
     if(timey > 15UL){
-      if(head->y > 1 && nunchuck_joyy() > 190){
+      if(head->y > 1 && nunchuck_joyy() > 190 && !hittingSecond(0,-1)){
         timey = 0;
         head->oldx = head->x;
         head->oldy = head->y;
         head->y--;
         moved = true;
-      } else if( head->y < 8 && nunchuck_joyy() < 70){
+      } else if( head->y < 8 && nunchuck_joyy() < 70 && !hittingSecond(0, 1)){
         timey = 0;
         head->oldx = head->x;
         head->oldy = head->y;
@@ -229,6 +229,15 @@ void processUserInput(){
       dead = true;
       displayFlash();
     }
+  }
+}
+
+boolean hittingSecond(int dirx, int diry){
+  if(length > 1){
+    body second = snake[1];
+    return head->x + dirx == second.x && head->y + diry == second.y;
+  } else {
+    return false;  
   }
 }
 
