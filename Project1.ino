@@ -22,10 +22,7 @@ int length = 1;
 body snake[MAXLENGTH];
 body *head = &snake[0];
 
-/*
-int movesrecorded = 0;
-history moves[MAXLENGTH-1];
-*/
+int energylevel = 1;
 
 unsigned long timex = 0;
 unsigned long timey = 0;
@@ -345,11 +342,14 @@ void smilieTest(){
     { 0,0,0,0,0,0,0,0 } 
   };
   
-  for(int i=0;i<100;i++){
+  for(int i=0;i<200;i++){
     for(int r=0;r<8;r++){
       digitalWrite( row[r], LOW);
       for(int c=0;c<8;c++){
-        digitalWrite(col[c], smilie[r][c] ? HIGH : LOW );
+        if(i>75 && i< 125 && (r==1 || r==2))
+          digitalWrite(col[c], LOW);
+        else
+          digitalWrite(col[c], smilie[r][c] ? HIGH : LOW );
       }
       //delayMicroseconds(650);
       delay(1);
